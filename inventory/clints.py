@@ -239,7 +239,7 @@ class InventoryModule(BaseInventoryPlugin):
                         for unique_suffix in range(0, 1000):
                             if "{0}{1}".format(hostname, unique_suffix) not in unique_hostnames:
                                 hostname = "{0}{1}".format(hostname, unique_suffix)
-                                unique_hostnames.update(hostname)
+                                unique_hostnames.update([hostname])
                                 break
                         self.inventory.add_host(hostname, group=cluster_name.replace('-', '_'))
                         if 'ssh-target' in task['group']:
