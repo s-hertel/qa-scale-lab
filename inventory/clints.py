@@ -45,8 +45,17 @@ DOCUMENTATION = '''
               - name: AWS_SESSION_TOKEN
               - name: EC2_SECURITY_TOKEN
         regions:
-          description: A list of regions in which to describe EC2 instances. By default this is all regions except us-gov-west-1
-              and cn-north-1.
+          description: A list of regions in which to describe EC2 instances.
+              By default this is all valid ECS regions (us-east-1, us-east-2, us-west-1, us-west-2, sa-east-1,
+              ca-central-1) except us-gov-west-1 and us-gov-east-1.
+          type: list
+          default:
+            - us-east-1
+            - us-east-2
+            - us-west-1
+            - us-west-2
+            - sa-east-1
+            - ca-central-1
 '''
 
 EXAMPLES = '''
@@ -171,7 +180,7 @@ class InventoryModule(BaseInventoryPlugin):
                     a list of possible hostnames in order of preference
                     a boolean to indicate whether to fail on permission errors
         '''
-        options = {'regions': {'type_to_be': list, 'value': config_data.get('regions', [])}}
+        options = {'regions': {'type_to_be': list, 'value': self.get_option('regions')}}
 
         # validate the options
         for name in options:
