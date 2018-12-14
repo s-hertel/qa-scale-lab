@@ -47,6 +47,10 @@ DOCUMENTATION = '''
         regions:
           description: A list of regions in which to describe EC2 instances. By default this is all regions except us-gov-west-1
               and cn-north-1.
+        batch:
+          description: The number of scale labs being combined to provide the hostnames with unique suffixes since otherwise they may overlap.
+          default: 1000
+          type: int
 '''
 
 EXAMPLES = '''
@@ -212,6 +216,8 @@ class InventoryModule(BaseInventoryPlugin):
         self.inventory.add_group('clint_ssh')
         self.inventory.add_child('all', 'clint_ssh')
 
+        unique_hostnames = set()
+
         for ec2, ecs, region in self._boto3_conn(regions):
             container_host_ips = {}
             use_clusters = ecs.describe_clusters(
@@ -233,6 +239,12 @@ class InventoryModule(BaseInventoryPlugin):
                             inst_dns = ec2.describe_instances(InstanceIds=[instance_id])['Reservations'][0]['Instances'][0]['PublicDnsName']
                             container_host_ips[task['containerInstanceArn']] = inst_dns
                         hostname = task['taskArn'].split('/')[-1].replace('-', '')
+                        for unique_suffix in range(0, self.get_option('batch')):
+                            if hostname not in unique_hostnames:
+                                unique_hostnames.update(hostname)
+                                break
+                            else:
+                                hostname = hostname + suffix
                         self.inventory.add_host(hostname, group=cluster_name.replace('-', '_'))
                         if 'ssh-target' in task['group']:
                             self.inventory.add_host(hostname, group='clint_ssh')
